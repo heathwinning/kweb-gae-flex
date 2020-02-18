@@ -1,0 +1,69 @@
+buildscript {
+    ext.ktor_version = '0.9.4'
+
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:+"
+        classpath 'com.google.cloud.tools:appengine-gradle-plugin:2.2.0'
+        classpath 'org.akhikhl.gretty:gretty:+'
+    }
+}
+
+repositories {
+    jcenter()
+    maven {
+        url 'https://maven-central.storage.googleapis.com'             // Google's mirror of Maven Central
+    }
+    maven { url 'https://jitpack.io' }
+    mavenCentral()
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'war'
+apply plugin: 'org.akhikhl.gretty'
+apply plugin: 'com.google.cloud.tools.appengine-appyaml'    // force plugin to use app.yaml
+
+sourceSets {
+    main.kotlin.srcDirs = [ 'src/main/kotlin' ]
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:+"
+    compile "io.ktor:ktor-server-servlet:$ktor_version"
+    compile "io.ktor:ktor-html-builder:$ktor_version"
+
+    providedCompile 'com.google.appengine:appengine:+'
+
+    compile 'com.github.kwebio:kweb-core:0.5.17'
+}
+
+gretty {
+    httpPort = 8080
+    contextPath = '/'
+    servletContainer = 'jetty9'  // What App Engine Flexible uses
+}
+
+
+appengine {
+    deploy {   // deploy configuration
+        stopPreviousVersion = true  // default - stop the current version
+        promote = true              // default - & make this the current version
+        projectId = "GCLOUD_CONFIG" // use gcloud-cli settings
+        version = "GCLOUD_CONFIG"   // use gcloud-cli settings
+    }
+}
+
+group = 'com.example.appengine'   // Generated output GroupId
+version = '1.0-SNAPSHOT'          // Version in generated output
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+kotlin.experimental.coroutines = 'enable'
